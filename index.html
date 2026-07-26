@@ -4,14 +4,14 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>PassportSnap Studio — Smart BG Removal + Resize</title>
-<meta name="description" content="Passport photo: 6/12/36 photos, smart BG removal, resize presets, angle fix, A4 print ready."/>
+<meta name="description" content="Passport photo: 6/12/36 photos, smart BG removal, click-to-pick target color, resize presets, angle fix, A4 print ready."/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 
 <!-- TensorFlow.js + BodyPix for AI-grade background removal -->
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.21.0/dist/tf.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2.2.0/dist/body-pix.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.21.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2.2.0/dist/body-pix.min.js"></script>
 
 <style>
 /* ══════════ DESIGN TOKENS ══════════ */
@@ -132,9 +132,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;heigh
 .note.info{border-left-color:var(--br500);background:var(--br50);}
 
 /* ══════════════════════════════════════════
-   BG REMOVAL — NEW DESIGN
+   BG REMOVAL — FIXED & INTERACTIVE
 ══════════════════════════════════════════ */
-/* AI status pill */
 .ai-status{
   display:flex;align-items:center;gap:8px;
   padding:9px 12px;border-radius:var(--r3);
@@ -147,7 +146,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;heigh
 .ai-dot.fail{background:var(--err);}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
-/* YES / NO */
 .yn{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
 .ynb{border-radius:var(--r3);border:2px solid var(--br200);padding:14px 10px;background:var(--white);cursor:pointer;font-family:var(--fb);display:flex;flex-direction:column;align-items:center;gap:5px;transition:all .22s;}
 .ynb .yi{font-size:28px;}
@@ -158,14 +156,24 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;heigh
 .ynb.no-on{border-color:var(--br400);background:var(--br50);}
 .ynb:hover{transform:translateY(-2px);box-shadow:var(--shm);}
 
-/* BG method tabs */
 .method-tabs{display:flex;border-radius:var(--r2);border:1.5px solid var(--br200);overflow:hidden;background:var(--br50);margin-bottom:14px;}
 .mtab{flex:1;border:none;background:transparent;padding:8px;font-size:11px;font-weight:700;cursor:pointer;color:var(--inkd);transition:all .15s;font-family:var(--fb);text-align:center;}
 .mtab.active{background:var(--br800);color:var(--cream);}
 .mtab:not(.active):hover{background:var(--br100);}
 .mtab:not(:last-child){border-right:1.5px solid var(--br200);}
 
-/* Color swatches */
+/* Click to Pick BG Color Eyedropper */
+.eyedropper-box{
+  background:var(--br50);border:1.5px solid var(--br200);border-radius:var(--r3);
+  padding:12px;margin-bottom:14px;
+}
+.ed-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.ed-title{font-size:12px;font-weight:700;color:var(--inkm);}
+.ed-swatch{width:22px;height:22px;border-radius:5px;border:1.5px solid var(--br300);background:#4CAF50;display:inline-block;vertical-align:middle;margin-left:6px;}
+.ed-canvas-wrap{position:relative;text-align:center;background:#fff;border:1px solid var(--br200);border-radius:var(--r2);overflow:hidden;padding:8px;}
+.ed-canvas-wrap canvas{max-width:100%;max-height:220px;cursor:crosshair;object-fit:contain;}
+.ed-hint{font-size:11px;color:var(--inkd);margin-top:6px;text-align:center;}
+
 .swatches{display:flex;gap:7px;flex-wrap:wrap;padding:12px;background:var(--br50);border:1.5px solid var(--br200);border-radius:var(--r3);margin-bottom:12px;}
 .sw{position:relative;width:42px;height:42px;border-radius:var(--r2);border:2.5px solid var(--br200);cursor:pointer;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;transition:transform .15s,border-color .15s,box-shadow .15s;}
 .sw:hover{transform:scale(1.12);z-index:2;}
@@ -185,14 +193,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;heigh
 .sw[data-c="custom"]{background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red);}
 .sw[data-c="custom"] input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
 
-/* Troubleshoot box */
-.trouble{background:var(--warnbg);border:1px solid rgba(176,96,0,.2);border-left:3px solid var(--warn);border-radius:var(--r2);padding:10px 12px;font-size:11px;color:var(--warnt);line-height:1.6;margin-top:10px;}
-.trouble summary{cursor:pointer;font-weight:700;font-size:12px;color:var(--warn);}
-.trouble-items{margin-top:8px;display:flex;flex-direction:column;gap:4px;}
-.trouble-item{display:flex;gap:6px;align-items:baseline;}
-.trouble-item::before{content:'•';color:var(--warn);flex-shrink:0;}
-
-/* BG test preview strip */
 .bg-preview-strip{
   display:flex;align-items:center;gap:10px;
   padding:10px 12px;background:var(--br50);
@@ -207,23 +207,15 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;heigh
 .bg-test-btn.loading-btn{opacity:.6;pointer-events:none;}
 
 /* ══════════════════════════════════════════
-   PHOTO RESIZE — NEW CARD
+   PHOTO RESIZE
 ══════════════════════════════════════════ */
 .resize-tabs{display:flex;gap:5px;margin-bottom:14px;flex-wrap:wrap;}
 .rtab{padding:7px 13px;border-radius:99px;border:1.5px solid var(--br200);background:var(--br50);font-size:12px;font-weight:600;cursor:pointer;color:var(--inkd);transition:all .15s;font-family:var(--fb);}
 .rtab.active{background:var(--br800);color:var(--cream);border-color:var(--br800);}
 .rtab:hover:not(.active){border-color:var(--br400);background:var(--br100);}
 
-/* Preset tiles */
 .preset-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
-.ptile{
-  border-radius:var(--r3);border:2px solid var(--br200);
-  padding:10px 8px;background:var(--white);cursor:pointer;
-  text-align:center;transition:all .2s;
-  position:relative;overflow:hidden;
-}
-.ptile::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 60%,rgba(201,137,58,.06));opacity:0;transition:opacity .2s;}
-.ptile:hover::before{opacity:1;}
+.ptile{border-radius:var(--r3);border:2px solid var(--br200);padding:10px 8px;background:var(--white);cursor:pointer;text-align:center;transition:all .2s;position:relative;overflow:hidden;}
 .ptile:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:var(--shm);}
 .ptile.active{border-color:var(--gold);background:linear-gradient(135deg,#fff8f0,#fef6ec);}
 .ptile.active .pt-name{color:var(--goldd);}
@@ -231,14 +223,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;heigh
 .pt-name{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:2px;}
 .pt-dim{font-size:10px;color:var(--inkd);font-weight:600;font-family:monospace;}
 .pt-desc{font-size:9px;color:var(--inkd);margin-top:2px;}
-.pt-badge{
-  position:absolute;top:4px;right:4px;
-  background:var(--gold);color:#fff;
-  font-size:8px;font-weight:800;border-radius:4px;padding:1px 4px;
-  letter-spacing:.05em;
-}
+.pt-badge{position:absolute;top:4px;right:4px;background:var(--gold);color:#fff;font-size:8px;font-weight:800;border-radius:4px;padding:1px 4px;letter-spacing:.05em;}
 
-/* Custom size panel */
 .custom-panel{background:var(--br50);border:1.5px solid var(--br200);border-radius:var(--r3);padding:14px;margin-bottom:12px;}
 .custom-inputs{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-bottom:10px;}
 .custom-inputs input[type=number]{text-align:center;font-weight:700;}
@@ -249,26 +235,14 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;heigh
 .unit-btn{padding:5px 10px;border-radius:99px;border:1.5px solid var(--br200);background:var(--white);font-size:11px;font-weight:700;cursor:pointer;color:var(--inkd);transition:all .15s;font-family:var(--fb);}
 .unit-btn.active{background:var(--br700);color:var(--cream);border-color:var(--br700);}
 
-/* Resize preview */
-.resize-preview-wrap{
-  display:flex;gap:12px;align-items:flex-start;
-  background:var(--br50);border:1.5px solid var(--br200);
-  border-radius:var(--r3);padding:12px;margin-bottom:12px;
-}
+.resize-preview-wrap{display:flex;gap:12px;align-items:flex-start;background:var(--br50);border:1.5px solid var(--br200);border-radius:var(--r3);padding:12px;margin-bottom:12px;}
 .rpv-before,.rpv-after{flex:1;text-align:center;}
 .rpv-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--inkd);margin-bottom:6px;}
 .rpv-canvas{width:100%;max-width:120px;height:auto;border-radius:5px;border:1px solid var(--br300);display:block;margin:0 auto;background:var(--br100);}
 .rpv-dim{font-size:10px;font-weight:700;color:var(--inkm);margin-top:5px;font-family:monospace;}
 .rpv-arrow{display:flex;align-items:center;padding-top:20px;color:var(--br400);font-size:20px;font-weight:800;}
 
-/* Resize apply / download btn */
-.resize-apply-btn{
-  width:100%;padding:12px;border:none;border-radius:var(--r3);
-  background:linear-gradient(135deg,var(--gold),var(--goldd));
-  color:#fff;font-size:13px;font-weight:700;font-family:var(--fb);
-  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
-  transition:all .22s;box-shadow:0 3px 12px rgba(201,137,58,.3);
-}
+.resize-apply-btn{width:100%;padding:12px;border:none;border-radius:var(--r3);background:linear-gradient(135deg,var(--gold),var(--goldd));color:#fff;font-size:13px;font-weight:700;font-family:var(--fb);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .22s;box-shadow:0 3px 12px rgba(201,137,58,.3);}
 .resize-apply-btn:hover{transform:translateY(-2px);filter:brightness(1.08);}
 
 /* ══ ANGLE CORRECTION ══ */
@@ -438,17 +412,17 @@ footer a:hover{text-decoration:underline;}
 </div>
 
 <!-- ══════════════════════════════════════════
-     BG REMOVAL (FIXED & IMPROVED)
+     BG REMOVAL (FIXED & IMPROVED WITH AI + TARGET PICKER)
 ══════════════════════════════════════════ -->
 <div class="card">
-  <div class="ch"><div class="ci2">🎨</div><div><h2>Background Removal</h2><p>Smart BG hatao — AI + Canvas combined</p></div></div>
+  <div class="ch"><div class="ci2">🎨</div><div><h2>Background Removal</h2><p>Person ko protect karo — Background target color click karke remove karo</p></div></div>
   <div class="cb">
 
     <!-- AI Status -->
     <div class="ai-status" id="aiStatus">
       <div class="ai-dot loading" id="aiDot"></div>
       <div>
-        <span id="aiStatusTxt" style="font-weight:700;color:var(--inkm);">AI Model Loading…</span>
+        <span id="aiStatusTxt" style="font-weight:700;color:var(--inkm);">AI Model Initializing…</span>
         <span style="color:var(--inkd);font-size:11px;"> (TensorFlow BodyPix)</span>
       </div>
     </div>
@@ -459,7 +433,7 @@ footer a:hover{text-decoration:underline;}
         <span class="yi">✅</span><span class="yt">Haan, Remove Karo</span><span class="ys">Background hatao</span>
       </button>
       <button class="ynb" id="bgNo" onclick="setBgMode(false)">
-        <span class="yi">🚫</span><span class="yt">Nahi, Raho Do</span><span class="ys">Original rakho</span>
+        <span class="yi">🚫</span><span class="yt">Nahi, Rehne Do</span><span class="ys">Original rakho</span>
       </button>
     </div>
 
@@ -467,21 +441,28 @@ footer a:hover{text-decoration:underline;}
 
       <!-- Method Tabs -->
       <div class="method-tabs">
-        <button class="mtab active" id="mAI" onclick="setBgMethod('ai',this)">🤖 AI Method<br/><small style="font-size:9px;opacity:.7;">(Best Quality)</small></button>
-        <button class="mtab" id="mCanvas" onclick="setBgMethod('canvas',this)">🖌️ Smart Canvas<br/><small style="font-size:9px;opacity:.7;">(Fast Fallback)</small></button>
+        <button class="mtab active" id="mAI" onclick="setBgMethod('ai',this)">🤖 AI Human Detector<br/><small style="font-size:9px;opacity:.7;">(Person Protect)</small></button>
+        <button class="mtab" id="mPicker" onclick="setBgMethod('picker',this)">🎯 Click-to-Pick Color<br/><small style="font-size:9px;opacity:.7;">(Click Outdoor BG)</small></button>
+        <button class="mtab" id="mCanvas" onclick="setBgMethod('canvas',this)">🖌️ Top Corner Sample<br/><small style="font-size:9px;opacity:.7;">(Auto Fallback)</small></button>
       </div>
 
-      <!-- Test Preview -->
-      <div class="bg-preview-strip">
-        <canvas class="bg-pv-canvas" id="bgTestCanvas" width="70" height="90"></canvas>
-        <div class="bg-pv-info">
-          <p id="bgPvInfo">Photo upload karo aur "Test BG Remove" dabao — preview yahan dikhega.</p>
-          <button class="bg-test-btn" id="bgTestBtn" onclick="testBgRemoval()">🔍 Test BG Remove</button>
+      <!-- CLICK TO PICK BG COLOR EYEDROPPER -->
+      <div class="eyedropper-box" id="eyedropperBox" style="display:none;">
+        <div class="ed-header">
+          <span class="ed-title">🎯 Target BG Color Click Karo:</span>
+          <div>
+            <span style="font-size:11px;color:var(--inkd);">Selected:</span>
+            <span class="ed-swatch" id="targetBgSwatch"></span>
+          </div>
         </div>
+        <div class="ed-canvas-wrap">
+          <canvas id="edCanvas"></canvas>
+        </div>
+        <div class="ed-hint">Photo ke <b>Background (trees/grass/ground)</b> par click karo jise hatana hai!</div>
       </div>
 
       <!-- Replacement Color -->
-      <div class="slbl">🎨 New Background Colour:</div>
+      <div class="slbl">🎨 New Replacement Background:</div>
       <div class="swatches">
         <div class="sw sel" data-c="white" onclick="setBgCol('#ffffff','white',this)"><span class="sw-n">White</span></div>
         <div class="sw" data-c="cream" onclick="setBgCol('#fefcf8','cream',this)"><span class="sw-n">Cream</span></div>
@@ -496,12 +477,12 @@ footer a:hover{text-decoration:underline;}
         <div class="sw" data-c="custom"><input type="color" id="bgCP" value="#ffffff" oninput="setBgColCP(this.value)"/><span class="sw-n">Custom</span></div>
       </div>
 
-      <!-- Canvas Method Controls (shown when canvas selected) -->
-      <div id="canvasControls" style="display:none;">
+      <!-- Method Controls -->
+      <div id="canvasControls">
         <div class="row">
           <span class="rl" style="font-size:11px;">Sensitivity</span>
-          <input type="range" id="bgSens" min="20" max="150" value="80" style="flex:1;" oninput="updateRange(this,'bgSensV');S.bgSens=+this.value;"/>
-          <span id="bgSensV" style="font-size:11px;font-weight:800;color:var(--inkd);min-width:26px;">80</span>
+          <input type="range" id="bgSens" min="20" max="160" value="85" style="flex:1;" oninput="updateRange(this,'bgSensV');S.bgSens=+this.value;"/>
+          <span id="bgSensV" style="font-size:11px;font-weight:800;color:var(--inkd);min-width:26px;">85</span>
         </div>
         <div class="row">
           <span class="rl" style="font-size:11px;">Edge Smooth</span>
@@ -511,32 +492,32 @@ footer a:hover{text-decoration:underline;}
             <button onclick="S.feather=4;setSegActive(this)">Extra</button>
           </div>
         </div>
+        <div class="row">
+          <span class="rl" style="font-size:11px;">Invert Mask</span>
+          <div class="tog"><input type="checkbox" id="invertMaskTog" onchange="S.invertMask=this.checked;"/><div class="ttr"></div><div class="tth"></div></div>
+          <span style="font-size:11px;color:var(--inkd);margin-left:6px;">(Flip Person vs BG if inverted)</span>
+        </div>
       </div>
 
-      <!-- Troubleshoot -->
-      <details class="trouble">
-        <summary>⚠️ BG Remove Kaam Nahi Kiya? — Troubleshooting</summary>
-        <div class="trouble-items">
-          <div class="trouble-item"><b>AI method fail:</b> TF.js model load nahi hua — Canvas method try karo</div>
-          <div class="trouble-item"><b>Poor contrast:</b> Agar subject aur background same color hai toh remove nahi hoga perfectly</div>
-          <div class="trouble-item"><b>Sensitivity too low:</b> Slider badha ke 100+ karo agar BG partially reh raha hai</div>
-          <div class="trouble-item"><b>Complex BG:</b> Gradient/pattern background ke liye AI method better hai</div>
-          <div class="trouble-item"><b>Subject edge cut:</b> Sensitivity ghata do 50-60 par agar subject bhi remove ho raha hai</div>
-          <div class="trouble-item"><b>Best result:</b> Solid colored passport BG (blue/white) ke liye Canvas method best hai</div>
+      <!-- Test Preview -->
+      <div class="bg-preview-strip">
+        <canvas class="bg-pv-canvas" id="bgTestCanvas" width="70" height="90"></canvas>
+        <div class="bg-pv-info">
+          <p id="bgPvInfo">Photo upload karke "Test BG Remove" dabao — test result yahan dekho.</p>
+          <button class="bg-test-btn" id="bgTestBtn" onclick="testBgRemoval()">🔍 Test BG Remove</button>
         </div>
-      </details>
+      </div>
+
     </div>
   </div>
 </div>
 
 <!-- ══════════════════════════════════════════
-     PHOTO RESIZE — NEW COMPREHENSIVE SECTION
+     PHOTO RESIZE
 ══════════════════════════════════════════ -->
 <div class="card">
-  <div class="ch"><div class="ci2">📐</div><div><h2>Photo Size & Resize</h2><p>Presets: Tiny → HD · Custom width × height</p></div></div>
+  <div class="ch"><div class="ci2">📐</div><div><h2>Photo Size &amp; Resize</h2><p>Presets: Tiny → HD · Custom width × height</p></div></div>
   <div class="cb">
-
-    <!-- Category Tabs -->
     <div class="resize-tabs">
       <button class="rtab active" onclick="showResizeCat('passport',this)">🪪 Passport</button>
       <button class="rtab" onclick="showResizeCat('print',this)">🖨️ Print</button>
@@ -706,7 +687,6 @@ footer a:hover{text-decoration:underline;}
       </div>
     </div>
 
-    <!-- Download Single Photo -->
     <button class="resize-apply-btn" onclick="downloadResizedPhoto()">
       ⬇️ Resized Single Photo Download Karo
     </button>
@@ -901,7 +881,8 @@ const S = {
   count:6, orientation:'portrait',
   margin:10, dpi:300,
   bgRemove:true, bgMethod:'ai', bgColor:'#ffffff', bgTransparent:false,
-  bgSens:80, feather:2,
+  pickedBgColor:[70, 140, 50], // Default green
+  bgSens:85, feather:2, invertMask:false,
   enhance:true,
   rotation:0, angEnable:true,
   arLock:true, customUnit:'px',
@@ -911,32 +892,32 @@ const S = {
 };
 
 /* ═══════════════════════════════════════════════
-   BODYPIX — AI BACKGROUND REMOVAL
+   BODYPIX — AI BACKGROUND REMOVAL (PERSON PROTECT)
 ═══════════════════════════════════════════════ */
 async function loadBodyPix(){
   if(S.bpReady) return true;
   if(S.bpLoading){ while(S.bpLoading) await sleep(100); return S.bpReady; }
   S.bpLoading = true;
   try{
-    if(typeof bodyPix === 'undefined') throw new Error('BodyPix not loaded');
+    if(typeof bodyPix === 'undefined') throw new Error('BodyPix library not loaded');
     S.bpNet = await bodyPix.load({
       architecture:'MobileNetV1',
       outputStride:16,
-      multiplier:0.50,
+      multiplier:0.75,
       quantBytes:2
     });
     S.bpReady = true;
-    setAiStatus('ready','🟢 AI Model Ready — Maximum Accuracy BG Removal');
-    toast('AI Model loaded! Best quality BG removal.','🤖');
+    setAiStatus('ready','🟢 AI Model Ready — Person Protected, BG Target Removed');
+    toast('AI Model Ready!','🤖');
     return true;
   } catch(e){
-    console.warn('BodyPix failed:',e);
-    setAiStatus('fail','⚠️ AI Model unavailable — Using Smart Canvas method');
-    S.bgMethod = 'canvas';
-    document.getElementById('mCanvas').classList.add('active');
+    console.warn('BodyPix load failed:',e);
+    setAiStatus('fail','⚠️ AI load failed — Use Click-to-Pick Color method');
+    S.bgMethod = 'picker';
+    document.getElementById('mPicker').classList.add('active');
     document.getElementById('mAI').classList.remove('active');
-    document.getElementById('canvasControls').style.display='';
-    document.getElementById('stMeth').textContent='Canvas';
+    document.getElementById('eyedropperBox').style.display='';
+    document.getElementById('stMeth').textContent='Click-Pick';
     return false;
   } finally {
     S.bpLoading = false;
@@ -961,8 +942,8 @@ async function removeBgAI(src){
     img.onload = async()=>{
       try{
         const seg = await S.bpNet.segmentPerson(img,{
-          internalResolution:'medium',
-          segmentationThreshold:0.7,
+          internalResolution:'high',
+          segmentationThreshold:0.5,
           maxDetections:1,
         });
         const W=img.width, H=img.height;
@@ -970,9 +951,12 @@ async function removeBgAI(src){
         const ctx=c.getContext('2d'); ctx.drawImage(img,0,0);
         const id=ctx.getImageData(0,0,W,H); const d=id.data;
         const [rR,rG,rB]=hex2rgb(S.bgColor);
+        const inv = S.invertMask;
 
         for(let i=0;i<seg.data.length;i++){
-          if(seg.data[i]===0){ // 0=background
+          const isPerson = seg.data[i] === 1;
+          const removeThis = inv ? isPerson : !isPerson;
+          if(removeThis){
             const pi=i*4;
             if(S.bgTransparent){ d[pi+3]=0; }
             else{ d[pi]=rR; d[pi+1]=rG; d[pi+2]=rB; }
@@ -981,7 +965,7 @@ async function removeBgAI(src){
         ctx.putImageData(id,0,0);
         resolve(c.toDataURL('image/png'));
       } catch(e){
-        console.warn('AI seg failed, using canvas',e);
+        console.warn('AI seg error, falling back to canvas',e);
         resolve(await removeBgCanvas(src));
       }
     };
@@ -991,10 +975,10 @@ async function removeBgAI(src){
 }
 
 /* ═══════════════════════════════════════════════
-   SMART CANVAS BG REMOVAL (IMPROVED)
-   - Samples ENTIRE border, finds median BG color
-   - BFS 8-way flood from all matching border pixels
-   - Feathering at edges
+   CLICK-TO-PICK BG COLOR (TARGET REMOVAL)
+   - Samples user-clicked color (e.g. green grass/trees)
+   - Eliminates that exact color & similar shades
+   - Protects the person (non-matching pixels)
 ═══════════════════════════════════════════════ */
 function removeBgCanvas(src){
   return new Promise(resolve=>{
@@ -1006,117 +990,52 @@ function removeBgCanvas(src){
       const id=ctx.getImageData(0,0,W,H); const d=id.data;
       const sens=S.bgSens;
 
-      /* ── Step 1: Sample ALL border pixels ── */
-      const borders=[]; const sr=3; // sample rate
-      for(let x=0;x<W;x+=sr){ // Top
-        const i=x*4; borders.push([d[i],d[i+1],d[i+2]]);
-      }
-      for(let x=0;x<W;x+=sr){ // Bottom
-        const i=((H-1)*W+x)*4; borders.push([d[i],d[i+1],d[i+2]]);
-      }
-      for(let y=0;y<H;y+=sr){ // Left
-        const i=(y*W)*4; borders.push([d[i],d[i+1],d[i+2]]);
-      }
-      for(let y=0;y<H;y+=sr){ // Right
-        const i=(y*W+W-1)*4; borders.push([d[i],d[i+1],d[i+2]]);
+      let targetColors=[];
+      if(S.bgMethod==='picker'&&S.pickedBgColor){
+        targetColors.push(S.pickedBgColor);
+      } else {
+        // Sample TOP CORNERS only (never bottom!)
+        const topSamples=[]; const sr=4;
+        for(let x=0;x<Math.floor(W*0.3);x+=sr){ // Top Left
+          const i=x*4; topSamples.push([d[i],d[i+1],d[i+2]]);
+        }
+        for(let x=Math.floor(W*0.7);x<W;x+=sr){ // Top Right
+          const i=x*4; topSamples.push([d[i],d[i+1],d[i+2]]);
+        }
+        if(topSamples.length>0){
+          const sortFn=(a,b)=>a-b;
+          const rs=topSamples.map(p=>p[0]).sort(sortFn);
+          const gs=topSamples.map(p=>p[1]).sort(sortFn);
+          const bs=topSamples.map(p=>p[2]).sort(sortFn);
+          const mid=Math.floor(topSamples.length/2);
+          targetColors.push([rs[mid],gs[mid],bs[mid]]);
+        }
       }
 
-      /* ── Step 2: Find dominant BG color (median) ── */
-      const sortFn=(a,b)=>a-b;
-      const rs=borders.map(p=>p[0]).sort(sortFn);
-      const gs=borders.map(p=>p[1]).sort(sortFn);
-      const bs=borders.map(p=>p[2]).sort(sortFn);
-      const mid=Math.floor(borders.length/2);
-      const bgR=rs[mid], bgG=gs[mid], bgB=bs[mid];
+      if(targetColors.length===0) targetColors.push([45,120,30]); // fallback green
 
-      /* ── Build reference colors: median + known passport BG colors ── */
-      const refs=[[bgR,bgG,bgB]];
-      // Add common passport backgrounds
-      refs.push([74,144,226]); // bright blue
-      refs.push([52,115,196]); // darker blue
-      refs.push([100,160,230]); // light blue
-      refs.push([240,240,240]); // near white
-      refs.push([255,255,255]); // white
-
-      const isBg=(r,g,b)=>{
-        for(const [rr,gg,bb] of refs){
-          if(cdist(r,g,b,rr,gg,bb)<sens) return true;
+      const isTarget=(r,g,b)=>{
+        for(const [tr,tg,tb] of targetColors){
+          if(cdist(r,g,b,tr,tg,tb)<sens) return true;
         }
         return false;
       };
 
-      /* ── Step 3: BFS flood-fill from ALL borders ── */
-      const visited=new Uint8Array(W*H);
-      const queue=new Int32Array(W*H); // pre-alloc for speed
-      let qHead=0, qTail=0;
-
-      const enq=idx=>{
-        if(visited[idx]) return;
-        const pi=idx*4;
-        if(isBg(d[pi],d[pi+1],d[pi+2])){
-          visited[idx]=1; queue[qTail++]=idx;
-        }
-      };
-
-      // Seed from all 4 borders
-      for(let x=0;x<W;x++){ enq(x); enq((H-1)*W+x); }
-      for(let y=1;y<H-1;y++){ enq(y*W); enq(y*W+W-1); }
-
-      // BFS with 8-connectivity
-      while(qHead<qTail){
-        const idx=queue[qHead++];
-        const x=idx%W, y=Math.floor(idx/W);
-        for(let dy=-1;dy<=1;dy++){
-          for(let dx=-1;dx<=1;dx++){
-            if(dx===0&&dy===0) continue;
-            const nx=x+dx, ny=y+dy;
-            if(nx<0||nx>=W||ny<0||ny>=H) continue;
-            const ni=ny*W+nx;
-            if(!visited[ni]){
-              const pi=ni*4;
-              if(isBg(d[pi],d[pi+1],d[pi+2])){
-                visited[ni]=1; queue[qTail++]=ni;
-              }
-            }
-          }
-        }
-      }
-
-      /* ── Step 4: Apply replacement with edge feathering ── */
       const [rR,rG,rB]=hex2rgb(S.bgColor);
       const feath=S.feather;
+      const inv=S.invertMask;
 
+      // Scan and remove matching target color pixels
       for(let y=0;y<H;y++){
         for(let x=0;x<W;x++){
-          const idx=y*W+x;
-          if(!visited[idx]) continue;
-          const pi=idx*4;
+          const idx=y*W+x; const pi=idx*4;
+          const match=isTarget(d[pi],d[pi+1],d[pi+2]);
+          const removePixel = inv ? !match : match;
 
-          if(feath>0){
-            let minDist=feath+1;
-            for(let dy=-feath;dy<=feath;dy++){
-              for(let dx=-feath;dx<=feath;dx++){
-                const nx2=x+dx, ny2=y+dy;
-                if(nx2<0||nx2>=W||ny2<0||ny2>=H) continue;
-                if(!visited[ny2*W+nx2]){
-                  const dt=Math.sqrt(dx*dx+dy*dy);
-                  if(dt<minDist) minDist=dt;
-                }
-              }
-            }
-            if(minDist<=feath){
-              const t=minDist/feath;
-              if(S.bgTransparent){ d[pi+3]=Math.round(t*d[pi+3]); }
-              else{
-                d[pi]=Math.round(rR*(1-t)+d[pi]*t);
-                d[pi+1]=Math.round(rG*(1-t)+d[pi+1]*t);
-                d[pi+2]=Math.round(rB*(1-t)+d[pi+2]*t);
-              }
-              continue;
-            }
+          if(removePixel){
+            if(S.bgTransparent){ d[pi+3]=0; }
+            else{ d[pi]=rR; d[pi+1]=rG; d[pi+2]=rB; }
           }
-          if(S.bgTransparent){ d[pi+3]=0; }
-          else{ d[pi]=rR; d[pi+1]=rG; d[pi+2]=rB; }
         }
       }
 
@@ -1132,6 +1051,31 @@ async function removeBg(src){
   return removeBgCanvas(src);
 }
 
+/* ── Eyedropper Image Canvas setup ── */
+function setupEyedropperCanvas(){
+  if(S.photos.length===0) return;
+  const cvs=document.getElementById('edCanvas');
+  const img=new Image(); img.src=S.photos[0];
+  img.onload=()=>{
+    cvs.width=img.width; cvs.height=img.height;
+    const ctx=cvs.getContext('2d'); ctx.drawImage(img,0,0);
+
+    cvs.onclick=(e)=>{
+      const rect=cvs.getBoundingClientRect();
+      const scaleX=cvs.width/rect.width;
+      const scaleY=cvs.height/rect.height;
+      const x=Math.floor((e.clientX-rect.left)*scaleX);
+      const y=Math.floor((e.clientY-rect.top)*scaleY);
+
+      const pixel=ctx.getImageData(x,y,1,1).data;
+      S.pickedBgColor=[pixel[0],pixel[1],pixel[2]];
+      const hex=`#${pixel[0].toString(16).padStart(2,'0')}${pixel[1].toString(16).padStart(2,'0')}${pixel[2].toString(16).padStart(2,'0')}`;
+      document.getElementById('targetBgSwatch').style.background=hex;
+      toast(`Background target color picked: RGB(${pixel[0]},${pixel[1]},${pixel[2]})`,'🎯');
+    };
+  };
+}
+
 /* ── Test BG in preview strip ── */
 async function testBgRemoval(){
   if(S.photos.length===0){ toast('Pehle photo upload karo!','⚠️'); return; }
@@ -1145,7 +1089,7 @@ async function testBgRemoval(){
     await new Promise(r=>img.onload=r);
     const ctx=cvs.getContext('2d');
     ctx.clearRect(0,0,70,90);
-    // Draw checkerboard for transparency
+    // Draw checkerboard
     for(let r=0;r<6;r++)for(let c2=0;c2<5;c2++){
       ctx.fillStyle=(r+c2)%2===0?'#ccc':'#fff';
       ctx.fillRect(c2*14,r*15,14,15);
@@ -1153,7 +1097,7 @@ async function testBgRemoval(){
     const scale=Math.min(70/img.width,90/img.height);
     const w=img.width*scale, h=img.height*scale;
     ctx.drawImage(img,(70-w)/2,(90-h)/2,w,h);
-    document.getElementById('bgPvInfo').textContent='✅ BG removed! Agar kuch miss hua to sensitivity adjust karo ya method change karo.';
+    document.getElementById('bgPvInfo').textContent='✅ Test complete! Check image preview.';
     toast('BG removal test done!','✅');
   } catch(e){
     document.getElementById('bgPvInfo').textContent='❌ Error: '+e.message;
@@ -1166,10 +1110,6 @@ async function testBgRemoval(){
 /* ═══════════════════════════════════════════════
    PHOTO RESIZE
 ═══════════════════════════════════════════════ */
-const CAT_SIZES={
-  passport:{35:{h:45,u:'mm'},51:{h:51,u:'mm'},25:{h:35,u:'mm'},40:{h:50,u:'mm'},404:{h:60,u:'mm'},54:{h:86,u:'mm'}},
-};
-
 function showResizeCat(cat, btn){
   ['passport','print','digital','custom'].forEach(c=>{
     document.getElementById('cat-'+c).style.display=(c===cat)?'':'none';
@@ -1180,7 +1120,6 @@ function showResizeCat(cat, btn){
 }
 
 function selectPreset(w, h, unit, tile){
-  // Deactivate all tiles
   document.querySelectorAll('.ptile').forEach(t=>t.classList.remove('active'));
   tile.classList.add('active');
 
@@ -1191,7 +1130,6 @@ function selectPreset(w, h, unit, tile){
   }
   S.resizeW=px_w; S.resizeH=px_h;
 
-  // Update custom inputs
   document.getElementById('cwInput').value=unit==='mm'?w:px_w;
   document.getElementById('chInput').value=unit==='mm'?h:px_h;
 
@@ -1203,10 +1141,7 @@ function selectPreset(w, h, unit, tile){
 
 function onCustomWChange(){
   const w=+document.getElementById('cwInput').value||1;
-  const h=+document.getElementById('chInput').value||1;
-  const unit=S.customUnit;
-  const mmPx=S.dpi/25.4;
-
+  const unit=S.customUnit; const mmPx=S.dpi/25.4;
   if(S.arLock){
     const ar=S.resizeH/S.resizeW;
     const newPxW=unit==='mm'?Math.round(w*mmPx):unit==='in'?Math.round(w*S.dpi):w;
@@ -1220,11 +1155,10 @@ function onCustomWChange(){
   document.getElementById('resDim').textContent=`${S.resizeW}×${S.resizeH} px`;
   updateResizePreview();
 }
+
 function onCustomHChange(){
   const h=+document.getElementById('chInput').value||1;
-  const unit=S.customUnit;
-  const mmPx=S.dpi/25.4;
-
+  const unit=S.customUnit; const mmPx=S.dpi/25.4;
   if(S.arLock){
     const ar=S.resizeW/S.resizeH;
     const newPxH=unit==='mm'?Math.round(h*mmPx):unit==='in'?Math.round(h*S.dpi):h;
@@ -1255,7 +1189,6 @@ function updateResizePreview(){
   if(S.photos.length===0) return;
   const img=new Image(); img.src=S.photos[0];
   img.onload=()=>{
-    // Original preview
     const oc=document.getElementById('rpvOrig');
     const octx=oc.getContext('2d');
     const os=Math.min(100/img.width,129/img.height);
@@ -1263,7 +1196,6 @@ function updateResizePreview(){
     octx.drawImage(img,0,0,oc.width,oc.height);
     document.getElementById('origDim').textContent=`${img.width}×${img.height}`;
 
-    // Resized preview
     const rc=document.getElementById('rpvResult');
     const rctx=rc.getContext('2d');
     const rs=Math.min(100/S.resizeW,129/S.resizeH);
@@ -1280,7 +1212,6 @@ async function downloadResizedPhoto(){
   const ctx=rc.getContext('2d');
   ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
 
-  // Process photo (BG remove + enhance + resize)
   let src=S.photos[0];
   if(S.enhance) src=await enhancePhoto(src);
   if(S.angEnable&&S.rotation!==0) src=await applyRot(src);
@@ -1402,7 +1333,6 @@ async function autoAngle(){
         }
       }
     }
-    // Canvas-based fallback
     const angle=await canvasAngle(S.photos[0]);
     document.getElementById('rotSlider').value=angle; onRotSlider(angle);
     toast(`Auto angle: ${angle}°. Adjust if needed.`,'📐');
@@ -1542,7 +1472,7 @@ function loadFiles(files){
       document.getElementById('upFill').style.width=(done/total*100)+'%';
       if(done===total){
         setTimeout(()=>ub.classList.remove('on'),600);
-        renderThumbs(); renderA4(); updateAngPv(); updateResizePreview();
+        renderThumbs(); renderA4(); updateAngPv(); updateResizePreview(); setupEyedropperCanvas();
         toast(`Photo ready! ${S.count} slots fill ho gaye.`,'📸');
       }
     };
@@ -1586,8 +1516,9 @@ function setBgMode(yes){
 function setBgMethod(m,btn){
   S.bgMethod=m;
   document.querySelectorAll('.mtab').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
-  document.getElementById('canvasControls').style.display=m==='canvas'?'':'none';
-  document.getElementById('stMeth').textContent=m==='ai'?'AI':'Canvas';
+  document.getElementById('eyedropperBox').style.display=m==='picker'?'':'none';
+  document.getElementById('stMeth').textContent=m==='ai'?'AI Human':m==='picker'?'Click-Pick':'Top Corner';
+  if(m==='picker') setupEyedropperCanvas();
 }
 
 function setBgCol(hex,key,el){
@@ -1698,7 +1629,6 @@ async function generateLayout(){
       setP(78+Math.round(i/S.count*18),`Photo ${i+1} place hua`);
     }
 
-    // Crop lines
     ctx.strokeStyle='rgba(100,80,60,0.08)'; ctx.lineWidth=.5; ctx.setLineDash([5,8]);
     for(let r=0;r<=g.r;r++){const y=sy+r*(pxH+gap)-(r>0?Math.floor(gap/2):0);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(pageW,y);ctx.stroke();}
     for(let c=0;c<=g.c;c++){const x=sx+c*(pxW+gap)-(c>0?Math.floor(gap/2):0);ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,pageH);ctx.stroke();}
@@ -1731,10 +1661,10 @@ function updateStepPlan(){
     {n:'01',t:'Canvas Setup',d:`${isP?'2480×3508':'3508×2480'} px @ ${S.dpi} DPI. White BG.`},
     {n:'02',t:'Enhancement',d:`Denoise → Sharpen → Contrast → Saturation → Skin warm.`},
     {n:'03',t:'Angle Fix',d:`Rotation <code>${S.rotation}°</code>. Auto ya slider se adjust.`},
-    {n:'04',t:'BG Remove',d:`Method: <code>${S.bgMethod.toUpperCase()}</code>. Border sampling → BFS flood → feather. Replace: <code>${S.bgTransparent?'Transparent':S.bgColor}</code>`},
-    {n:'05',t:`Resize → ${ph.w}×${ph.h}mm`,d:`${Math.round(ph.w*S.dpi/25.4)}×${Math.round(ph.h*S.dpi/25.4)} px. Center-crop: eyes 45-50% from top.`},
-    {n:'06',t:`Grid ${g.c}×${g.r}=${S.count}`,d:`${S.count} slots. Gap 3mm. Margin ${S.margin}mm all sides. Auto-centered on A4.`},
-    {n:'07',t:'Export',d:`PNG + JPEG Q:95 @ ${S.dpi} DPI. A4 photo paper. Scale=100%.`},
+    {n:'04',t:'BG Remove',d:`Method: <code>${S.bgMethod.toUpperCase()}</code>. Person protected, BG replaced with <code>${S.bgTransparent?'Transparent':S.bgColor}</code>`},
+    {n:'05',t:`Resize → ${ph.w}×${ph.h}mm`,d:`${Math.round(ph.w*S.dpi/25.4)}×${Math.round(ph.h*S.dpi/25.4)} px.`},
+    {n:'06',t:`Grid ${g.c}×${g.r}=${S.count}`,d:`${S.count} slots. Gap 3mm. Margin ${S.margin}mm all sides.`},
+    {n:'07',t:'Export',d:`PNG + JPEG Q:95 @ ${S.dpi} DPI.`},
   ];
   document.getElementById('stepPlan').innerHTML=steps.map(s=>`<div class="step"><div class="snum">${s.n}</div><div><div class="st">${s.t}</div><div class="sd">${s.d}</div></div></div>`).join('');
 }
@@ -1745,7 +1675,7 @@ function updateStepPlan(){
 function hex2rgb(hex){if(!hex)return[255,255,255];return[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)];}
 function cdist(r1,g1,b1,r2,g2,b2){return Math.sqrt((r1-r2)**2+(g1-g2)**2+(b1-b2)**2);}
 function cl(v){return Math.max(0,Math.min(255,Math.round(v)));}
-function rgbhsl(r,g,b){const mx=Math.max(r,g,b),mn=Math.min(r,g,b);let h,s;const l=(mx+mn)/2;if(mx===mn){h=s=0;}else{const d=mx-mn;s=l>.5?d/(2-mx-mn):d/(mx+mn);switch(mx){case r:h=((g-b)/d+(g<b?6:0))/6;break;case g:h=((b-r)/d+2)/6;break;default:h=((r-g)/d+4)/6;}}return[h,s,l];}
+function rgbhsl(r,g,b){const mx=Math.max(r,g,b),mn=Math.min(r,g,b);let h,s;const l=(mx+mn)/2;if(mx===mn){h=s=0;}else{const d=mx-mn;s=l>.5?d/(2-mx-mn):d/(max+min);switch(mx){case r:h=((g-b)/d+(g<b?6:0))/6;break;case g:h=((b-r)/d+2)/6;break;default:h=((r-g)/d+4)/6;}}return[h,s,l];}
 function hslrgb(h,s,l){if(s===0)return[l,l,l];const q=l<.5?l*(1+s):l+s-l*s,p=2*l-q;const hue=t=>{if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;};return[hue(h+1/3),hue(h),hue(h-1/3)];}
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 let ttimer=null;
@@ -1764,22 +1694,19 @@ function toast(msg,icon='✅'){
 (function init(){
   renderThumbs(); renderA4(); updateSpecs(); updateStepPlan();
 
-  // Init range sliders visual fill
   document.querySelectorAll('input[type=range]').forEach(el=>{
     const upd=()=>{const mn=+el.min||0,mx=+el.max||100,v=+el.value;el.style.background=`linear-gradient(90deg,var(--gold) ${(v-mn)/(mx-mn)*100}%,var(--br200) ${(v-mn)/(mx-mn)*100}%)`;};
     el.addEventListener('input',upd); upd();
   });
 
-  // Load BodyPix in background
   setTimeout(()=>{
     if(typeof bodyPix!=='undefined'){
-      setAiStatus('loading','⏳ AI Model loading… (first time only)');
+      setAiStatus('loading','⏳ AI Model loading…');
       loadBodyPix();
     } else {
-      // Retry after scripts load
-      window.addEventListener('load',()=>{ if(typeof bodyPix!=='undefined') loadBodyPix(); else setAiStatus('fail','⚠️ AI unavailable — Canvas method active'); });
+      setAiStatus('fail','⚠️ AI unavailable — Use Click-to-Pick Color method');
     }
-  }, 1500);
+  }, 1000);
 
   document.getElementById('gridPhSz').addEventListener('change', updateSpecs);
 })();
