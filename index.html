@@ -103,7 +103,7 @@ header::before{content:'';position:absolute;inset:0;background:radial-gradient(e
 .thempty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--br300);font-size:8px;border-style:dashed;}
 
 /* CONTROLS */
-.row{display:flex;align-items:center;gap:9px;margin-bottom:11px;flex-wrap:wrap;}
+.row{display:flex;align-items:center;gap:99px;margin-bottom:11px;flex-wrap:wrap;}
 .rl{font-size:12px;font-weight:600;color:var(--inkm);min-width:78px;flex-shrink:0;}
 .seg{display:flex;border-radius:var(--r2);border:1.5px solid var(--br200);overflow:hidden;background:var(--br50);}
 .seg button{flex:1;border:none;background:transparent;padding:7px 11px;font-size:12px;font-weight:600;cursor:pointer;color:var(--inkd);transition:all .15s;white-space:nowrap;font-family:var(--fb);}
@@ -144,19 +144,27 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;heigh
 .mtab:not(.active):hover{background:var(--br100);}
 .mtab:not(:last-child){border-right:1.5px solid var(--br200);}
 
-/* TOUCH-UP BRUSH TOOL */
+/* TOUCH-UP BRUSH TOOL (FIXED ACCURATE CANVAS) */
 .brush-panel{
   background:var(--br50);border:1.5px solid var(--br200);border-radius:var(--r3);
   padding:14px;margin-bottom:14px;
 }
-.bp-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.bp-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;}
 .bp-title{font-size:12px;font-weight:700;color:var(--inkm);}
 .bp-tools{display:flex;gap:6px;}
-.btool-btn{padding:5px 11px;border-radius:var(--r2);border:1.5px solid var(--br300);background:#fff;font-size:11px;font-weight:700;cursor:pointer;color:var(--inkd);font-family:var(--fb);transition:all .15s;}
+.btool-btn{padding:6px 12px;border-radius:var(--r2);border:1.5px solid var(--br300);background:#fff;font-size:11px;font-weight:700;cursor:pointer;color:var(--inkd);font-family:var(--fb);transition:all .15s;}
 .btool-btn.active-erase{background:var(--errbg);border-color:var(--err);color:var(--err);}
 .btool-btn.active-restore{background:var(--okbg);border-color:var(--ok);color:var(--okt);}
-.brush-cvs-wrap{position:relative;text-align:center;background:#fff;border:1.5px solid var(--br300);border-radius:var(--r2);overflow:hidden;margin-bottom:10px;user-select:none;}
-.brush-cvs-wrap canvas{max-width:100%;max-height:260px;cursor:crosshair;object-fit:contain;}
+
+.brush-cvs-wrap{
+  position:relative;width:100%;max-width:400px;margin:0 auto 10px;
+  background:#fff;border:2px solid var(--br300);border-radius:var(--r2);
+  overflow:hidden;user-select:none;touch-action:none;
+  display:flex;align-items:center;justify-content:center;
+}
+.brush-cvs-wrap canvas{
+  display:block;width:100%;height:auto;cursor:crosshair;
+}
 
 .swatches{display:flex;gap:7px;flex-wrap:wrap;padding:12px;background:var(--br50);border:1.5px solid var(--br200);border-radius:var(--r3);margin-bottom:12px;}
 .sw{position:relative;width:42px;height:42px;border-radius:var(--r2);border:2.5px solid var(--br200);cursor:pointer;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;transition:transform .15s,border-color .15s,box-shadow .15s;}
@@ -367,8 +375,8 @@ footer a{color:var(--gold);font-weight:700;text-decoration:none;}
     <div class="ai-status" id="aiStatus">
       <div class="ai-dot loading" id="aiDot"></div>
       <div>
-        <span id="aiStatusTxt" style="font-weight:700;color:var(--inkm);">AI Human Detector Ready</span>
-        <span style="color:var(--inkd);font-size:11px;"> (Person Protection + Spill Fix Active)</span>
+        <span id="aiStatusTxt" style="font-weight:700;color:var(--inkm);">AI Human Detector Loading…</span>
+        <span style="color:var(--inkd);font-size:11px;"> (Full-Body &amp; Outdoor Ready)</span>
       </div>
     </div>
 
@@ -391,22 +399,22 @@ footer a{color:var(--gold);font-weight:700;text-decoration:none;}
         <button class="mtab" id="mCanvas" onclick="setBgMethod('canvas',this)">🎨 Smart Canvas<br/><small style="font-size:9px;opacity:.7;">(Smooth Blend)</small></button>
       </div>
 
-      <!-- TOUCH-UP BRUSH PANEL -->
+      <!-- TOUCH-UP BRUSH PANEL (100% ACCURATE MOUSER MATCH) -->
       <div class="brush-panel" id="brushPanel" style="display:none;">
         <div class="bp-header">
-          <span class="bp-title">🖌️ Manual Brush Se Touch-Up Karo:</span>
+          <span class="bp-title">🖌️ Image Par Drag Karke Erase/Restore Karo:</span>
           <div class="bp-tools">
             <button class="btool-btn active-erase" id="btErase" onclick="setBrushTool('erase',this)">🧹 Erase BG</button>
             <button class="btool-btn" id="btRestore" onclick="setBrushTool('restore',this)">✨ Restore Person</button>
           </div>
         </div>
-        <div class="brush-cvs-wrap">
+        <div class="brush-cvs-wrap" id="brushWrap">
           <canvas id="brushCanvas"></canvas>
         </div>
         <div class="row" style="margin-bottom:0;">
           <span class="rl" style="font-size:11px;">Brush Size</span>
-          <input type="range" id="brushSize" min="5" max="60" value="20" style="flex:1;" oninput="updateRange(this,'brushSizeV');S.brushRadius=+this.value;"/>
-          <span id="brushSizeV" style="font-size:11px;font-weight:800;color:var(--inkd);min-width:24px;">20</span>
+          <input type="range" id="brushSize" min="5" max="80" value="25" style="flex:1;" oninput="updateRange(this,'brushSizeV');S.brushRadius=+this.value;"/>
+          <span id="brushSizeV" style="font-size:11px;font-weight:800;color:var(--inkd);min-width:24px;">25</span>
           <button class="rsb" style="margin-left:8px;" onclick="resetBrushCanvas()">↺ Reset Brush</button>
         </div>
       </div>
@@ -433,14 +441,6 @@ footer a{color:var(--gold);font-weight:700;text-decoration:none;}
           <span class="rl" style="font-size:11px;">Green Spill Fix</span>
           <div class="tog"><input type="checkbox" id="spillFixTog" checked onchange="S.spillFix=this.checked;"/><div class="ttr"></div><div class="tth"></div></div>
           <span style="font-size:11px;color:var(--inkd);margin-left:6px;">(Outdoor green hair/neck halo remover)</span>
-        </div>
-        <div class="row">
-          <span class="rl" style="font-size:11px;">Edge Smooth</span>
-          <div class="seg" style="flex:1;">
-            <button onclick="S.feather=0;setSegActive(this)">None</button>
-            <button class="active" onclick="S.feather=2;setSegActive(this)">Soft</button>
-            <button onclick="S.feather=4;setSegActive(this)">Extra</button>
-          </div>
         </div>
       </div>
 
@@ -820,7 +820,8 @@ const S = {
   margin:10, dpi:300,
   bgRemove:true, bgMethod:'ai', bgColor:'#ffffff', bgTransparent:false,
   spillFix:true, feather:2,
-  brushTool:'erase', brushRadius:20, brushMaskCanvas:null,
+  brushTool:'erase', brushRadius:25,
+  brushWorkingImg:null, // Working image buffer for live brush painting
   enhance:true,
   rotation:0, angEnable:true,
   arLock:true, customUnit:'px',
@@ -843,7 +844,7 @@ async function loadBodyPix(){
       quantBytes:2
     });
     S.bpReady = true;
-    setAiStatus('ready','🟢 AI Model Active — Person Protected + Smooth Edge Mask');
+    setAiStatus('ready','🟢 AI Detector Ready — Full-Body & Outdoor Person Protection');
     toast('AI Detector ready!','🤖');
     return true;
   } catch(e){
@@ -865,7 +866,7 @@ function setAiStatus(state, msg){
   txt.textContent = msg;
 }
 
-/* AI PERSON SEGMENTATION WITH SMOOTH ALPHA BLENDING & SPILL FIX */
+/* AI PERSON SEGMENTATION WITH HIGH RESOLUTION FOR WIDE / OUTDOOR SHOTS */
 async function removeBgAI(src){
   if(!S.bpReady){
     const ok = await loadBodyPix();
@@ -876,10 +877,11 @@ async function removeBgAI(src){
     img.crossOrigin='anonymous';
     img.onload = async()=>{
       try{
+        // Use full internal resolution & lower threshold (0.25) to detect person in wide outdoor shots!
         const seg = await S.bpNet.segmentPerson(img,{
-          internalResolution:'high',
-          segmentationThreshold:0.5,
-          maxDetections:1,
+          internalResolution:'full',
+          segmentationThreshold:0.25,
+          maxDetections:5,
         });
         const W=img.width, H=img.height;
         const c=document.createElement('canvas'); c.width=W; c.height=H;
@@ -887,7 +889,6 @@ async function removeBgAI(src){
         const id=ctx.getImageData(0,0,W,H); const d=id.data;
         const [rR,rG,rB]=hex2rgb(S.bgColor);
 
-        // Apply Green Spill Fix & Alpha Blend
         for(let i=0;i<seg.data.length;i++){
           const isPerson = seg.data[i] === 1;
           const pi=i*4;
@@ -897,27 +898,11 @@ async function removeBgAI(src){
             if(S.bgTransparent){ d[pi+3]=0; }
             else{ d[pi]=rR; d[pi+1]=rG; d[pi+2]=rB; }
           } else {
-            // Person -> Keep original pixel, but fix green spill if enabled
+            // Person -> Keep original pixel & apply Green spill fix if enabled
             if(S.spillFix){
               let r=d[pi], g=d[pi+1], b=d[pi+2];
               if(g > r + 10 && g > b + 10){
-                d[pi+1] = Math.round((r + b) / 2); // suppress green halo
-              }
-            }
-          }
-        }
-
-        // Apply manual brush overlay if drawn
-        if(S.brushMaskCanvas){
-          const bctx = S.brushMaskCanvas.getContext('2d');
-          const bd = bctx.getImageData(0,0,W,H).data;
-          for(let i=0;i<bd.length;i+=4){
-            const alpha = bd[i+3];
-            if(alpha > 0){
-              const isErase = bd[i] > 128; // red = erase, green = restore
-              if(isErase){
-                if(S.bgTransparent){ d[i+3]=0; }
-                else{ d[i]=rR; d[i+1]=rG; d[i+2]=rB; }
+                d[pi+1] = Math.round((r + b) / 2);
               }
             }
           }
@@ -935,7 +920,7 @@ async function removeBgAI(src){
   });
 }
 
-/* SMART CANVAS BG REMOVAL (SMOOTH COLOR DISTANCE + TOP CORNER SAMPLING) */
+/* SMART CANVAS BG REMOVAL */
 function removeBgCanvas(src){
   return new Promise(resolve=>{
     const img=new Image(); img.src=src;
@@ -945,16 +930,16 @@ function removeBgCanvas(src){
       const ctx=c.getContext('2d'); ctx.drawImage(img,0,0);
       const id=ctx.getImageData(0,0,W,H); const d=id.data;
 
-      // Sample TOP CORNERS only (where background is)
+      // Sample TOP CORNERS only
       const topSamples=[]; const sr=4;
-      for(let x=0;x<Math.floor(W*0.3);x+=sr){ // Top Left
+      for(let x=0;x<Math.floor(W*0.3);x+=sr){
         const i=x*4; topSamples.push([d[i],d[i+1],d[i+2]]);
       }
-      for(let x=Math.floor(W*0.7);x<W;x+=sr){ // Top Right
+      for(let x=Math.floor(W*0.7);x<W;x+=sr){
         const i=x*4; topSamples.push([d[i],d[i+1],d[i+2]]);
       }
 
-      let bgR=45, bgG=120, bgB=30; // default outdoor green
+      let bgR=45, bgG=120, bgB=30;
       if(topSamples.length>0){
         const sortFn=(a,b)=>a-b;
         const rs=topSamples.map(p=>p[0]).sort(sortFn);
@@ -972,7 +957,6 @@ function removeBgCanvas(src){
           const pi=(y*W+x)*4;
           let r=d[pi], g=d[pi+1], b=d[pi+2];
 
-          // Green spill fix
           if(S.spillFix && g > r + 10 && g > b + 10){
             g = Math.round((r + b) / 2);
           }
@@ -980,11 +964,9 @@ function removeBgCanvas(src){
           const dist = cdist(r,g,b,bgR,bgG,bgB);
 
           if(dist < lowTh){
-            // 100% Background
             if(S.bgTransparent){ d[pi+3]=0; }
             else{ d[pi]=rR; d[pi+1]=rG; d[pi+2]=rB; }
           } else if(dist < highTh){
-            // Smooth Blend Transition Edge
             const t = (dist - lowTh) / (highTh - lowTh);
             if(!S.bgTransparent){
               d[pi]=Math.round(r * t + rR * (1 - t));
@@ -992,7 +974,6 @@ function removeBgCanvas(src){
               d[pi+2]=Math.round(b * t + rB * (1 - t));
             }
           }
-          // dist >= highTh -> 100% Person (keep untouched original)
         }
       }
 
@@ -1004,54 +985,86 @@ function removeBgCanvas(src){
 
 async function removeBg(src){
   if(!S.bgRemove) return src;
+  if(S.bgMethod==='brush'&&S.brushWorkingImg) return S.brushWorkingImg;
   if(S.bgMethod==='ai') return removeBgAI(src);
   return removeBgCanvas(src);
 }
 
-/* TOUCH-UP BRUSH CANVAS INTERACTION */
+/* ═══════════════════════════════════════════════
+   TOUCH-UP BRUSH TOOL (100% ACCURATE MOUSE TRACKING & ZERO LETTERBOXING)
+═══════════════════════════════════════════════ */
 function setupBrushCanvas(){
   if(S.photos.length===0) return;
   const cvs=document.getElementById('brushCanvas');
-  const img=new Image(); img.src=S.photos[0];
-  img.onload=()=>{
-    cvs.width=img.width; cvs.height=img.height;
-    const ctx=cvs.getContext('2d'); ctx.drawImage(img,0,0);
+  const origImg=new Image(); origImg.src=S.photos[0];
 
-    if(!S.brushMaskCanvas){
-      S.brushMaskCanvas=document.createElement('canvas');
+  origImg.onload=async()=>{
+    const W=origImg.width, H=origImg.height;
+    cvs.width=W; cvs.height=H;
+    cvs.style.aspectRatio = `${W} / ${H}`;
+
+    // Initialize current working image (if not already processed)
+    if(!S.brushWorkingImg){
+      S.brushWorkingImg = await removeBgAI(S.photos[0]);
     }
-    S.brushMaskCanvas.width=img.width;
-    S.brushMaskCanvas.height=img.height;
+
+    const workImg = new Image(); workImg.src = S.brushWorkingImg;
+    await new Promise(r=>workImg.onload=r);
+
+    const ctx=cvs.getContext('2d');
+    ctx.drawImage(workImg,0,0);
 
     let isDrawing=false;
-    const mctx=S.brushMaskCanvas.getContext('2d');
 
-    const draw=(e)=>{
-      if(!isDrawing) return;
+    const paintPixel=(e)=>{
       const rect=cvs.getBoundingClientRect();
-      const scaleX=cvs.width/rect.width;
-      const scaleY=cvs.height/rect.height;
-      const x=(e.clientX||e.touches[0].clientX)-rect.left;
-      const y=(e.clientY||e.touches[0].clientY)-rect.top;
-      const px=x*scaleX, py=y*scaleY;
+      const scaleX = cvs.width / rect.width;
+      const scaleY = cvs.height / rect.height;
 
-      mctx.beginPath();
-      mctx.arc(px,py,S.brushRadius,0,Math.PI*2);
-      mctx.fillStyle=S.brushTool==='erase'?'rgba(255,0,0,1)':'rgba(0,255,0,1)';
-      mctx.fill();
+      const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+      const clientY = e.clientY || (e.touches && e.touches[0].clientY);
 
-      // Redraw preview overlay
-      ctx.drawImage(img,0,0);
-      ctx.fillStyle=S.brushTool==='erase'?'rgba(255,0,0,0.3)':'rgba(0,255,0,0.3)';
-      ctx.beginPath(); ctx.arc(px,py,S.brushRadius,0,Math.PI*2); ctx.fill();
+      if(clientX === undefined || clientY === undefined) return;
+
+      const mouseX = (clientX - rect.left) * scaleX;
+      const mouseY = (clientY - rect.top) * scaleY;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(mouseX, mouseY, S.brushRadius * scaleX, 0, Math.PI * 2);
+
+      if(S.brushTool === 'erase'){
+        // Erase mode: fill circle with selected BG color
+        if(S.bgTransparent){
+          ctx.globalCompositeOperation = 'destination-out';
+          ctx.fill();
+        } else {
+          ctx.fillStyle = S.bgColor || '#ffffff';
+          ctx.fill();
+        }
+      } else {
+        // Restore mode: clip circle and draw original image back!
+        ctx.clip();
+        ctx.drawImage(origImg, 0, 0, W, H);
+      }
+      ctx.restore();
     };
 
-    cvs.onmousedown=(e)=>{ isDrawing=true; draw(e); };
-    cvs.onmousemove=draw;
-    cvs.onmouseup=()=>{ isDrawing=false; testBgRemoval(); };
-    cvs.ontouchstart=(e)=>{ isDrawing=true; draw(e); };
-    cvs.ontouchmove=draw;
-    cvs.ontouchend=()=>{ isDrawing=false; testBgRemoval(); };
+    cvs.onmousedown=(e)=>{ isDrawing=true; paintPixel(e); };
+    cvs.onmousemove=(e)=>{ if(isDrawing) paintPixel(e); };
+    cvs.onmouseup=()=>{
+      if(isDrawing){
+        isDrawing=false;
+        S.brushWorkingImg = cvs.toDataURL('image/png');
+        testBgRemoval();
+      }
+    };
+    cvs.onmouseleave=()=>{ if(isDrawing){ isDrawing=false; S.brushWorkingImg=cvs.toDataURL('image/png'); } };
+
+    // Touch events for mobile/tablet
+    cvs.ontouchstart=(e)=>{ e.preventDefault(); isDrawing=true; paintPixel(e); };
+    cvs.ontouchmove=(e)=>{ e.preventDefault(); if(isDrawing) paintPixel(e); };
+    cvs.ontouchend=(e)=>{ e.preventDefault(); isDrawing=false; S.brushWorkingImg=cvs.toDataURL('image/png'); testBgRemoval(); };
   };
 }
 
@@ -1062,13 +1075,10 @@ function setBrushTool(tool,btn){
 }
 
 function resetBrushCanvas(){
-  if(S.brushMaskCanvas){
-    const ctx=S.brushMaskCanvas.getContext('2d');
-    ctx.clearRect(0,0,S.brushMaskCanvas.width,S.brushMaskCanvas.height);
-  }
+  S.brushWorkingImg = null;
   setupBrushCanvas();
   testBgRemoval();
-  toast('Brush cleared!','↺');
+  toast('Brush reset to initial AI output!','↺');
 }
 
 /* TEST BG PREVIEW */
@@ -1091,7 +1101,7 @@ async function testBgRemoval(){
     const scale=Math.min(70/img.width,90/img.height);
     const w=img.width*scale, h=img.height*scale;
     ctx.drawImage(img,(70-w)/2,(90-h)/2,w,h);
-    document.getElementById('bgPvInfo').textContent='✅ Person protected! Check preview.';
+    document.getElementById('bgPvInfo').textContent='✅ Background processed! Check preview.';
     toast('Test done!','✅');
   } catch(e){
     document.getElementById('bgPvInfo').textContent='❌ Error: '+e.message;
@@ -1415,7 +1425,7 @@ function renderThumbs(){
       const num=document.createElement('div'); num.className='thnum'; num.textContent=i===0?'SRC':'#'+(i+1); div.appendChild(num);
       if(i===0){
         const rm=document.createElement('button'); rm.className='thrm'; rm.textContent='×';
-        rm.onclick=e=>{e.stopPropagation();S.photos=[];renderThumbs();renderA4();updateAngPv();updateResizePreview();toast('Removed','🗑️');};
+        rm.onclick=e=>{e.stopPropagation();S.photos=[];S.brushWorkingImg=null;renderThumbs();renderA4();updateAngPv();updateResizePreview();toast('Removed','🗑️');};
         div.appendChild(rm);
       }
     } else {
@@ -1438,7 +1448,7 @@ dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');lo
 function loadFiles(files){
   if(!files.length) return;
   const ub=document.getElementById('upBar'); ub.classList.add('on');
-  S.photos=[]; let done=0; const total=Math.min(files.length,6);
+  S.photos=[]; S.brushWorkingImg=null; let done=0; const total=Math.min(files.length,6);
   for(let i=0;i<total;i++){
     const r=new FileReader();
     r.onload=ev=>{
@@ -1493,12 +1503,14 @@ function setBgCol(hex,key,el){
   S.bgTransparent=(key==='blank'); S.bgColor=hex||'#ffffff';
   document.querySelectorAll('.sw').forEach(s=>s.classList.remove('sel')); el.classList.add('sel');
   document.getElementById('stBg').textContent=`✓ ON → ${S.bgTransparent?'Transparent':hex}`;
+  if(S.bgMethod==='brush') setupBrushCanvas();
 }
 function setBgColCP(hex){
   S.bgTransparent=false; S.bgColor=hex;
   document.querySelectorAll('.sw').forEach(s=>s.classList.remove('sel'));
   document.querySelector('[data-c="custom"]').classList.add('sel');
   document.getElementById('stBg').textContent=`✓ ON → ${hex}`;
+  if(S.bgMethod==='brush') setupBrushCanvas();
 }
 
 function setOri(o,btn){
