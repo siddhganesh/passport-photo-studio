@@ -12,10 +12,13 @@ HTML_CONTENT = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>AI Passport Studio Pro (Instant)</title>
+<title>AI Passport Studio Pro</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
 <style>
 :root{
   --cream:#FAF6F1; --cream2:#F2EBE2; --white:#FFFFFF;
@@ -75,9 +78,9 @@ footer{text-align:center;padding:28px 0 20px;color:var(--txt3);font-size:12px;ma
 <div x-data="App()" class="wrap">
 
 <header>
-  <div class="badge"><span class="dot"></span>&nbsp;⚡ Instant 0.1s Browser Engine</div>
+  <div class="badge"><span class="dot"></span>&nbsp;AI Selfie Segmentation &amp; Smart Crop</div>
   <h1>Passport Photo <span class="gt">Studio Pro</span></h1>
-  <p class="sub">Instant passport photo generator. Zero server limits.</p>
+  <p class="sub">AI Background Remover + Passport Studio Generator</p>
 </header>
 
 <div class="grid">
@@ -90,7 +93,7 @@ footer{text-align:center;padding:28px 0 20px;color:var(--txt3);font-size:12px;ma
       <template x-if="!orig">
         <div>
           <p style="font-size:14px;font-weight:600;color:var(--txt)">Select Photo</p>
-          <p style="font-size:11px;color:var(--txt3);margin-top:4px">Click to choose image</p>
+          <p style="font-size:11px;color:var(--txt3);margin-top:4px">JPG, PNG, WEBP</p>
         </div>
       </template>
       <template x-if="orig">
@@ -103,6 +106,10 @@ footer{text-align:center;padding:28px 0 20px;color:var(--txt3);font-size:12px;ma
 
   <div class="card" x-show="orig">
     <div class="ct"><div class="cn">2</div> Options</div>
+    <div class="trow">
+      <div class="tlabel">🤖 AI Remove Background</div>
+      <div class="tog" :class="{on:rmbg}" @click="rmbg=!rmbg;process()"></div>
+    </div>
     <div class="trow">
       <div class="tlabel">✨ Auto Enhance</div>
       <div class="tog" :class="{on:enhance}" @click="enhance=!enhance;process()"></div>
@@ -141,7 +148,7 @@ footer{text-align:center;padding:28px 0 20px;color:var(--txt3);font-size:12px;ma
   </div>
 
   <div x-show="final">
-    <p style="font-weight:600;margin-bottom:12px;color:var(--br-dk)">✨ Instant Preview (0.1s):</p>
+    <p style="font-weight:600;margin-bottom:12px;color:var(--br-dk)">✨ Result Preview:</p>
     <div class="cmp"
          @mousedown="dragging=true;slide($event)"
          @mousemove="slide($event)"
@@ -174,14 +181,14 @@ footer{text-align:center;padding:28px 0 20px;color:var(--txt3);font-size:12px;ma
 </div>
 </div>
 
-<footer>Passport Photo Studio Pro &nbsp;&middot;&nbsp; 100% Client-Side Engine</footer>
+<footer>Passport Photo Studio Pro</footer>
 </div>
 
 <script>
 function App(){return{
-  orig:null,final:null,printImg:null,imgObj:null,
+  orig:null,final:null,printImg:null,imgObj:null,segmenter:null,
   dragging:false,pos:50,
-  enhance:true,crop:true,bg:'white',
+  rmbg:true,enhance:true,crop:true,bg:'white',
   copies:'8',paper:'A4',
 
   swatches:[
@@ -192,6 +199,13 @@ function App(){return{
     {n:'Grey',v:'grey',h:'#E0E0E0'},
     {n:'Transparent',v:'transparent',h:'transparent'},
   ],
+
+  init(){
+    if(window.SelfieSegmentation){
+      this.segmenter = new SelfieSegmentation({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`});
+      this.segmenter.setOptions({modelSelection: 1});
+    }
+  },
 
   onFile(e){
     const f=e.target.files[0];
@@ -206,8 +220,28 @@ function App(){return{
     r.readAsDataURL(f);
   },
 
-  process(){
+  async process(){
     if(!this.imgObj)return;
+    
+    const rawCanvas = document.createElement('canvas');
+    const rawCtx = rawCanvas.getContext('2d');
+    let w = this.imgObj.width;
+    let h = this.imgObj.height;
+    rawCanvas.width = w;
+    rawCanvas.height = h;
+    rawCtx.drawImage(this.imgObj, 0, 0);
+
+    if(this.rmbg && this.segmenter){
+      this.segmenter.onResults((results) => {
+        this.renderCanvas(results.segmentationMask);
+      });
+      await this.segmenter.send({image: rawCanvas});
+    } else {
+      this.renderCanvas(null);
+    }
+  },
+
+  renderCanvas(mask){
     const canvas=document.createElement('canvas');
     const ctx=canvas.getContext('2d');
     
@@ -238,8 +272,21 @@ function App(){return{
     if(this.enhance){
       ctx.filter='contrast(112%) brightness(105%) saturate(105%)';
     }
-    
-    ctx.drawImage(this.imgObj, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+
+    if(mask && this.rmbg){
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = w;
+      tempCanvas.height = h;
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCtx.drawImage(mask, 0, 0, w, h);
+      tempCtx.globalCompositeOperation = 'source-in';
+      tempCtx.drawImage(this.imgObj, 0, 0, w, h);
+      
+      ctx.drawImage(tempCanvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+    } else {
+      ctx.drawImage(this.imgObj, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+    }
+
     this.final=canvas.toDataURL('image/jpeg',0.95);
     this.genPrint();
   },
