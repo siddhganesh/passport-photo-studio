@@ -12,7 +12,7 @@ HTML_CONTENT = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>AI Passport Studio Pro (Client-Side 0.1s)</title>
+<title>AI Passport Studio Pro (Instant)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -31,18 +31,18 @@ HTML_CONTENT = """<!DOCTYPE html>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Inter',sans-serif;background:var(--cream);color:var(--txt);min-height:100vh;}
 .wrap{position:relative;z-index:1;max-width:1360px;margin:0 auto;padding:0 24px;}
-header{padding:40px 0 32px;text-align:center;}
+header{padding:36px 0 28px;text-align:center;}
 .badge{display:inline-flex;align-items:center;gap:8px;background:rgba(111,78,55,.08);border:1px solid rgba(111,78,55,.2);border-radius:100px;padding:7px 18px;font-size:12px;font-weight:600;color:var(--br);}
 .dot{width:6px;height:6px;background:var(--br-lt);border-radius:50%;}
-h1{font-family:'Playfair Display',serif;font-size:clamp(32px,4.5vw,56px);font-weight:700;color:var(--br-dk);margin-bottom:12px;}
+h1{font-family:'Playfair Display',serif;font-size:clamp(30px,4vw,52px);font-weight:700;color:var(--br-dk);margin-bottom:8px;}
 .gt{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-.sub{font-size:15px;color:var(--txt2);max-width:560px;margin:0 auto 32px;line-height:1.6;}
+.sub{font-size:14px;color:var(--txt2);max-width:560px;margin:0 auto 24px;line-height:1.5;}
 .grid{display:grid;grid-template-columns:390px 1fr;gap:20px;align-items:start;}
 @media(max-width:1020px){.grid{grid-template-columns:1fr;}}
 .card{background:var(--white);border:1px solid var(--bdr);border-radius:var(--r);padding:24px;box-shadow:var(--sh);}
 .ct{font-family:'Playfair Display',serif;font-size:16px;font-weight:600;color:var(--br-dk);margin-bottom:18px;display:flex;align-items:center;gap:10px;}
 .cn{width:26px;height:26px;background:var(--grad);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;}
-.uz{border:2px dashed rgba(111,78,55,.25);border-radius:14px;padding:28px 20px;text-align:center;cursor:pointer;background:var(--cream);}
+.uz{border:2px dashed rgba(111,78,55,.25);border-radius:14px;padding:24px 20px;text-align:center;cursor:pointer;background:var(--cream);}
 .thumb img{width:100%;height:160px;object-fit:cover;border-radius:10px;}
 .trow{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--bdr);}
 .trow:last-child{border-bottom:none;}
@@ -55,11 +55,11 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(32px,4.5vw,56px);font-we
 .sw{width:34px;height:34px;border-radius:8px;cursor:pointer;border:2px solid transparent;}
 .sw.act{border-color:var(--br);box-shadow:0 0 0 3px rgba(111,78,55,.2);}
 .sw-trans{background:repeating-conic-gradient(#ccc 0% 25%,#fff 0% 50%) 0 0/10px 10px;border:1px solid var(--bdr);}
-.btn-p{width:100%;padding:14px;background:var(--grad);border:none;border-radius:13px;color:#fff;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:16px;}
-.btn-s{padding:10px 18px;background:var(--cream);border:1px solid var(--bdr);border-radius:10px;color:var(--txt2);font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:8px;}
-.preview{min-height:520px;display:flex;flex-direction:column;}
+.btn-p{width:100%;padding:14px;background:var(--grad);border:none;border-radius:13px;color:#fff;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:16px;text-decoration:none;}
+.btn-s{padding:10px 18px;background:var(--cream);border:1px solid var(--bdr);border-radius:10px;color:var(--txt2);font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:8px;text-decoration:none;}
+.preview{min-height:480px;display:flex;flex-direction:column;}
 .pempty{flex:1;display:flex;align-items:center;justify-content:center;}
-.cmp{position:relative;border-radius:14px;overflow:hidden;height:320px;cursor:ew-resize;user-select:none;background:var(--cream2);border:1px solid var(--bdr);touch-action:none;}
+.cmp{position:relative;border-radius:14px;overflow:hidden;height:300px;cursor:ew-resize;user-select:none;background:var(--cream2);border:1px solid var(--bdr);touch-action:none;}
 .cmp-b,.cmp-a{position:absolute;inset:0;}
 .cmp-b img,.cmp-a img{width:100%;height:100%;object-fit:contain;}
 .cmp-a{clip-path:inset(0 50% 0 0);}
@@ -68,20 +68,20 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(32px,4.5vw,56px);font-we
 .cmp-lbl{position:absolute;top:10px;padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;text-transform:uppercase;}
 .lbl-b{left:10px;background:rgba(62,32,16,.5);color:#fff;}
 .lbl-a{right:10px;background:var(--br);color:#fff;}
-footer{text-align:center;padding:36px 0 24px;color:var(--txt3);font-size:12px;margin-top:30px;}
+footer{text-align:center;padding:28px 0 20px;color:var(--txt3);font-size:12px;margin-top:24px;}
 </style>
 </head>
 <body>
 <div x-data="App()" class="wrap">
 
 <header>
-  <div class="badge"><span class="dot"></span>&nbsp;0.1s Client-Side Processing</div>
+  <div class="badge"><span class="dot"></span>&nbsp;⚡ Instant 0.1s Browser Engine</div>
   <h1>Passport Photo <span class="gt">Studio Pro</span></h1>
-  <p class="sub">Instant passport photo generator. Zero server delays.</p>
+  <p class="sub">Instant passport photo generator. Zero server limits.</p>
 </header>
 
 <div class="grid">
-<!-- LEFT -->
+<!-- LEFT PANEL -->
 <div style="display:flex;flex-direction:column;gap:16px;">
   <div class="card">
     <div class="ct"><div class="cn">1</div> Upload Portrait</div>
@@ -90,6 +90,7 @@ footer{text-align:center;padding:36px 0 24px;color:var(--txt3);font-size:12px;ma
       <template x-if="!orig">
         <div>
           <p style="font-size:14px;font-weight:600;color:var(--txt)">Select Photo</p>
+          <p style="font-size:11px;color:var(--txt3);margin-top:4px">Click to choose image</p>
         </div>
       </template>
       <template x-if="orig">
@@ -123,16 +124,16 @@ footer{text-align:center;padding:36px 0 24px;color:var(--txt3);font-size:12px;ma
   </div>
 
   <div class="card" x-show="final">
-    <div class="ct"><div class="cn">3</div> Print Sheet</div>
+    <div class="ct"><div class="cn">3</div> Print Sheet Setup</div>
     <div style="display:flex;gap:10px;margin-bottom:10px">
       <select x-model="copies" @change="genPrint()" style="flex:1;padding:8px;border-radius:8px"><option>4</option><option selected>8</option><option>12</option></select>
       <select x-model="paper" @change="genPrint()" style="flex:1;padding:8px;border-radius:8px"><option>A4</option><option>4x6</option></select>
     </div>
-    <button @click="genPrint()" class="btn-s" style="width:100%;justify-content:center">Generate Print Sheet</button>
+    <button @click="genPrint()" class="btn-s" style="width:100%;justify-content:center">Refresh Print Sheet</button>
   </div>
 </div>
 
-<!-- RIGHT -->
+<!-- RIGHT PANEL -->
 <div>
 <div class="card preview">
   <div class="pempty" x-show="!orig">
@@ -158,14 +159,14 @@ footer{text-align:center;padding:36px 0 24px;color:var(--txt3);font-size:12px;ma
     </div>
 
     <div style="margin-top:16px;">
-      <a :href="final" download="passport_photo.jpg" class="btn-p" style="text-decoration:none">Download Photo</a>
+      <a :href="final" download="passport_photo.jpg" class="btn-p">Download Passport Photo</a>
     </div>
 
     <template x-if="printImg">
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--bdr)">
         <p style="font-weight:600;margin-bottom:10px">🖨️ Print Sheet Ready:</p>
         <img :src="printImg" style="width:100%;max-height:220px;object-fit:contain;border-radius:8px">
-        <a :href="printImg" download="print_sheet.jpg" class="btn-s" style="margin-top:10px;text-decoration:none;display:inline-block">Download Print Sheet</a>
+        <a :href="printImg" download="print_sheet.jpg" class="btn-s" style="margin-top:10px;display:inline-block">Download Print Sheet</a>
       </div>
     </template>
   </div>
@@ -173,7 +174,7 @@ footer{text-align:center;padding:36px 0 24px;color:var(--txt3);font-size:12px;ma
 </div>
 </div>
 
-<footer>Passport Photo Studio Pro &nbsp;&middot;&nbsp; Instant Client-Side Processing</footer>
+<footer>Passport Photo Studio Pro &nbsp;&middot;&nbsp; 100% Client-Side Engine</footer>
 </div>
 
 <script>
@@ -228,16 +229,14 @@ function App(){return{
     canvas.width=cropW;
     canvas.height=cropH;
     
-    // Background color
     if(this.bg!=='transparent'){
       const colors={'white':'#FFFFFF','offwhite':'#F5F5F0','blue':'#224987','lightblue':'#4A90D9','grey':'#E0E0E0'};
       ctx.fillStyle=colors[this.bg]||'#FFFFFF';
       ctx.fillRect(0,0,cropW,cropH);
     }
     
-    // Enhancement filters
     if(this.enhance){
-      ctx.filter='contrast(115%) brightness(105%) saturate(105%)';
+      ctx.filter='contrast(112%) brightness(105%) saturate(105%)';
     }
     
     ctx.drawImage(this.imgObj, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
