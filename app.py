@@ -9,10 +9,17 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
-app = FastAPI()
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+app = FastAPI(title="Passport Photo Studio Pro")
 
-# ── BACKEND PROCESSING LOGIC ──────────────────────────────────────────────────
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ── BACKEND IMAGE PROCESSING ENGINE ──────────────────────────────────────────
 
 def enhance_image(image: Image.Image) -> Image.Image:
     enhancer = ImageEnhance.Contrast(image)
