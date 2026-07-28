@@ -16,9 +16,6 @@ HTML_CONTENT = """<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
 <style>
 :root{
   --cream:#FAF6F1; --cream2:#F2EBE2; --white:#FFFFFF;
@@ -62,7 +59,7 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(30px,4vw,52px);font-weig
 .btn-s{padding:10px 18px;background:var(--cream);border:1px solid var(--bdr);border-radius:10px;color:var(--txt2);font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:8px;text-decoration:none;}
 .preview{min-height:480px;display:flex;flex-direction:column;}
 .pempty{flex:1;display:flex;align-items:center;justify-content:center;}
-.cmp{position:relative;border-radius:14px;overflow:hidden;height:300px;cursor:ew-resize;user-select:none;background:var(--cream2);border:1px solid var(--bdr);touch-action:none;}
+.cmp{position:relative;border-radius:14px;overflow:hidden;height:320px;cursor:ew-resize;user-select:none;background:var(--cream2);border:1px solid var(--bdr);touch-action:none;}
 .cmp-b,.cmp-a{position:absolute;inset:0;}
 .cmp-b img,.cmp-a img{width:100%;height:100%;object-fit:contain;}
 .cmp-a{clip-path:inset(0 50% 0 0);}
@@ -78,9 +75,9 @@ footer{text-align:center;padding:28px 0 20px;color:var(--txt3);font-size:12px;ma
 <div x-data="App()" class="wrap">
 
 <header>
-  <div class="badge"><span class="dot"></span>&nbsp;AI Selfie Segmentation &amp; Smart Crop</div>
+  <div class="badge"><span class="dot"></span>&nbsp;Instant Studio Engine</div>
   <h1>Passport Photo <span class="gt">Studio Pro</span></h1>
-  <p class="sub">AI Background Remover + Passport Studio Generator</p>
+  <p class="sub">Instant passport photo generator. Zero server limits.</p>
 </header>
 
 <div class="grid">
@@ -93,7 +90,7 @@ footer{text-align:center;padding:28px 0 20px;color:var(--txt3);font-size:12px;ma
       <template x-if="!orig">
         <div>
           <p style="font-size:14px;font-weight:600;color:var(--txt)">Select Photo</p>
-          <p style="font-size:11px;color:var(--txt3);margin-top:4px">JPG, PNG, WEBP</p>
+          <p style="font-size:11px;color:var(--txt3);margin-top:4px">Click to choose image</p>
         </div>
       </template>
       <template x-if="orig">
@@ -106,10 +103,6 @@ footer{text-align:center;padding:28px 0 20px;color:var(--txt3);font-size:12px;ma
 
   <div class="card" x-show="orig">
     <div class="ct"><div class="cn">2</div> Options</div>
-    <div class="trow">
-      <div class="tlabel">🤖 AI Remove Background</div>
-      <div class="tog" :class="{on:rmbg}" @click="rmbg=!rmbg;process()"></div>
-    </div>
     <div class="trow">
       <div class="tlabel">✨ Auto Enhance</div>
       <div class="tog" :class="{on:enhance}" @click="enhance=!enhance;process()"></div>
@@ -148,7 +141,7 @@ footer{text-align:center;padding:28px 0 20px;color:var(--txt3);font-size:12px;ma
   </div>
 
   <div x-show="final">
-    <p style="font-weight:600;margin-bottom:12px;color:var(--br-dk)">✨ Result Preview:</p>
+    <p style="font-weight:600;margin-bottom:12px;color:var(--br-dk)">✨ Instant Preview:</p>
     <div class="cmp"
          @mousedown="dragging=true;slide($event)"
          @mousemove="slide($event)"
@@ -186,9 +179,9 @@ footer{text-align:center;padding:28px 0 20px;color:var(--txt3);font-size:12px;ma
 
 <script>
 function App(){return{
-  orig:null,final:null,printImg:null,imgObj:null,segmenter:null,
+  orig:null,final:null,printImg:null,imgObj:null,
   dragging:false,pos:50,
-  rmbg:true,enhance:true,crop:true,bg:'white',
+  enhance:true,crop:true,bg:'white',
   copies:'8',paper:'A4',
 
   swatches:[
@@ -200,13 +193,6 @@ function App(){return{
     {n:'Transparent',v:'transparent',h:'transparent'},
   ],
 
-  init(){
-    if(window.SelfieSegmentation){
-      this.segmenter = new SelfieSegmentation({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`});
-      this.segmenter.setOptions({modelSelection: 1});
-    }
-  },
-
   onFile(e){
     const f=e.target.files[0];
     if(!f)return;
@@ -214,34 +200,16 @@ function App(){return{
     r.onload=evt=>{
       this.orig=evt.target.result;
       this.imgObj=new Image();
-      this.imgObj.onload=()=>{ this.process(); };
+      this.imgObj.onload=()=>{
+        this.process();
+      };
       this.imgObj.src=evt.target.result;
     };
     r.readAsDataURL(f);
   },
 
-  async process(){
+  process(){
     if(!this.imgObj)return;
-    
-    const rawCanvas = document.createElement('canvas');
-    const rawCtx = rawCanvas.getContext('2d');
-    let w = this.imgObj.width;
-    let h = this.imgObj.height;
-    rawCanvas.width = w;
-    rawCanvas.height = h;
-    rawCtx.drawImage(this.imgObj, 0, 0);
-
-    if(this.rmbg && this.segmenter){
-      this.segmenter.onResults((results) => {
-        this.renderCanvas(results.segmentationMask);
-      });
-      await this.segmenter.send({image: rawCanvas});
-    } else {
-      this.renderCanvas(null);
-    }
-  },
-
-  renderCanvas(mask){
     const canvas=document.createElement('canvas');
     const ctx=canvas.getContext('2d');
     
@@ -272,21 +240,8 @@ function App(){return{
     if(this.enhance){
       ctx.filter='contrast(112%) brightness(105%) saturate(105%)';
     }
-
-    if(mask && this.rmbg){
-      const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = w;
-      tempCanvas.height = h;
-      const tempCtx = tempCanvas.getContext('2d');
-      tempCtx.drawImage(mask, 0, 0, w, h);
-      tempCtx.globalCompositeOperation = 'source-in';
-      tempCtx.drawImage(this.imgObj, 0, 0, w, h);
-      
-      ctx.drawImage(tempCanvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
-    } else {
-      ctx.drawImage(this.imgObj, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
-    }
-
+    
+    ctx.drawImage(this.imgObj, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
     this.final=canvas.toDataURL('image/jpeg',0.95);
     this.genPrint();
   },
