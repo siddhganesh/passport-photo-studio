@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+.venv
+venv/
+*.log
+.DS_Store
+Thumbs.db
+*.onnx
+*.tflite
+u2net/
+*.egg-info/
+dist/
+build/
